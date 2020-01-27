@@ -9,6 +9,7 @@ from .navigator_webdriver import navigator_webdriver
 from .user_agent import user_agent
 from .webgl_vendor import webgl_vendor
 from .window_outerdimensions import window_outerdimensions
+from .media_codecs import media_codecs
 
 
 async def stealth(page: Page) -> None:
@@ -24,3 +25,4 @@ async def stealth(page: Page) -> None:
     await user_agent(page)
     await webgl_vendor(page)
     await window_outerdimensions(page)
+    await media_codecs(page)
