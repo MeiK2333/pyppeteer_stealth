@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="pyppeteer_stealth",
-    version="1.0.2",
+    version="2.6.0",
     author="MeiK2333",
     author_email="meik2333@gmail.com",
     description="pyppeteer stealth",
@@ -13,4 +13,5 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/MeiK2333/pyppeteer-stealth",
     packages=setuptools.find_packages(),
+    package_data={"pyppeteer_stealth": ["js/*.js"]},
 )

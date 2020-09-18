@@ -26,14 +26,30 @@ async def main():
 asyncio.get_event_loop().run_until_complete(main())
 ```
 
+## Args
+
+```python
+stealth(
+  page: Page,
+  run_on_insecure_origins: bool = False,
+  languages: [str] = ["en-US", "en"],
+  vendor: str = "Google Inc."
+  user_agent: str = None,
+  language: str = "en-US,en",
+  platform: str = "Win32",
+  webgl_vendor: str = "Intel Inc.",
+  renderer: str = "Intel Iris OpenGL Engine",
+)
+```
+
 ## Test results
 
 ### Pyppeteer without stealth
 
 <table class="image">
 <tr>
-  <td><figure class="image"><a href="headless_without_stealth.png"><img src="headless_without_stealth.png"></a><figcaption>headless</figcaption></figure></td>
-  <td><figure class="image"><a href="headful_without_stealth.png"><img src="headful_without_stealth.png"></a><figcaption>headful</figcaption></figure></td>
+  <td><figure class="image"><a href="https://github.com/MeiK2333/pyppeteer_stealth/blob/master/headless_without_stealth.png"><img src="https://github.com/MeiK2333/pyppeteer_stealth/blob/master/headless_without_stealth.png"></a><figcaption>headless</figcaption></figure></td>
+  <td><figure class="image"><a href="https://github.com/MeiK2333/pyppeteer_stealth/blob/master/headful_without_stealth.png"><img src="https://github.com/MeiK2333/pyppeteer_stealth/blob/master/headful_without_stealth.png"></a><figcaption>headful</figcaption></figure></td>
 </tr>
 </table>
 
@@ -41,7 +57,7 @@ asyncio.get_event_loop().run_until_complete(main())
 
 <table class="image">
 <tr>
-  <td><figure class="image"><a href="headless_with_stealth.png"><img src="headless_with_stealth.png"></a><figcaption>headless</figcaption></figure></td>
-  <td><figure class="image"><a href="headful_with_stealth.png"><img src="headful_with_stealth.png"></a><figcaption>headful</figcaption></figure></td>
+  <td><figure class="image"><a href="https://github.com/MeiK2333/pyppeteer_stealth/blob/master/headless_with_stealth.png"><img src="https://github.com/MeiK2333/pyppeteer_stealth/blob/master/headless_with_stealth.png"></a><figcaption>headless</figcaption></figure></td>
+  <td><figure class="image"><a href="https://github.com/MeiK2333/pyppeteer_stealth/blob/master/headful_with_stealth.png"><img src="https://github.com/MeiK2333/pyppeteer_stealth/blob/master/headful_with_stealth.png"></a><figcaption>headful</figcaption></figure></td>
 </tr>
 </table>

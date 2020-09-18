@@ -1,18 +1,9 @@
+from pathlib import Path
+
 from pyppeteer.page import Page
 
 
-async def window_outerdimensions(page: Page) -> None:
+async def window_outerdimensions(page: Page, **kwargs) -> None:
     await page.evaluateOnNewDocument(
-        """
-() => {
-    try {
-        if (window.outerWidth && window.outerHeight) {
-            return
-        }
-        const windowFrame = 85
-        window.outerWidth = window.innerWidth
-        window.outerHeight = window.innerHeight + windowFrame
-    } catch (err) { }
-}
-"""
+        Path(__file__).parent.joinpath("js/window.outerdimensions.js").read_text()
     )
