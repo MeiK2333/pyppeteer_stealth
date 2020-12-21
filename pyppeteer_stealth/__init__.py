@@ -4,6 +4,7 @@ from .chrome_app import chrome_app
 from .chrome_runtime import chrome_runtime
 from .iframe_content_window import iframe_content_window
 from .media_codecs import media_codecs
+from .sourceurl import sourceurl
 from .navigator_hardware_concurrency import navigator_hardware_concurrency
 from .navigator_languages import navigator_languages
 from .navigator_permissions import navigator_permissions
@@ -25,6 +26,7 @@ async def stealth(page: Page, **kwargs) -> None:
     await chrome_runtime(page, **kwargs)
     await iframe_content_window(page, **kwargs)
     await media_codecs(page, **kwargs)
+    await sourceurl(page, **kwargs)
     await navigator_hardware_concurrency(page, **kwargs)
     await navigator_languages(page, **kwargs)
     await navigator_permissions(page, **kwargs)
