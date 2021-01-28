@@ -2,7 +2,12 @@
 
 (languages) => {
   // Overwrite the `languages` property to use a custom getter.
-  Object.defineProperty(Object.getPrototypeOf(navigator), 'languages', {
-    get: () => languages || ['en-US', 'en']
-  })
+  const languages_to_pass = languages.length
+    ? languages
+    : ['en-US', 'en']
+  utils.replaceGetterWithProxy(
+    Object.getPrototypeOf(navigator),
+    'languages',
+    utils.makeHandler().getterValue(Object.freeze([...languages_to_pass]))
+  )
 }
