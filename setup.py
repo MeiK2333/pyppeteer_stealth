@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="pyppeteer_stealth",
-    version="2.6.1",
+    version="2.7.1",
     author="MeiK2333",
     author_email="meik2333@gmail.com",
     description="pyppeteer stealth",
