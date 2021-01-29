@@ -269,7 +269,10 @@
         configurable: true
       })
       Object.defineProperty(mimeTypes[type], 'enabledPlugin', {
-        value: new Proxy(plugins[pluginData.name], {}), // Prevent circular references
+        value: 
+          type === 'application/x-pnacl'
+            ? mimeTypes['application/x-nacl'].enabledPlugin // these reference the same plugin, so we need to re-use the Proxy in order to avoid leaks
+            : new Proxy(plugins[pluginData.name], {}), // Prevent circular references
         writable: false,
         enumerable: false, // Important: `JSON.stringify(navigator.plugins)`
         configurable: true

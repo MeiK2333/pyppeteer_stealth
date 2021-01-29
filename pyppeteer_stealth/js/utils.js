@@ -135,6 +135,9 @@
    * For a determined enough observer it would be possible to overwrite and sniff usage of functions
    * we use in our internal Proxies, to combat that we use a cached copy of those functions.
    *
+   * Note: Whenever we add a `Function.prototype.toString` proxy we should preload the cache before,
+   * by executing `utils.preloadCache()` before the proxy is applied (so we don't cause recursive lookups).
+   *
    * This is evaluated once per execution context (e.g. window)
    */
   utils.preloadCache = () => {
@@ -161,17 +164,12 @@
    * The only advantage we have over the other team is that our JS runs first, hence we cache the result
    * of the native toString result once, so they cannot spoof it afterwards and reveal that we're using it.
    *
-   * Note: Whenever we add a `Function.prototype.toString` proxy we should preload the cache before,
-   * by executing `utils.preloadCache()` before the proxy is applied (so we don't cause recursive lookups).
-   *
    * @example
    * makeNativeString('foobar') // => `function foobar() { [native code] }`
    *
    * @param {string} [name] - Optional function name
    */
   utils.makeNativeString = (name = '') => {
-    // Cache (per-window) the original native toString or use that if available
-    utils.preloadCache()
     return utils.cache.nativeToStringStr.replace('toString', name || '')
   }
 
@@ -190,9 +188,7 @@
    * @param {string} str - Optional string used as a return value
    */
   utils.patchToString = (obj, str = '') => {
-    utils.preloadCache()
-
-    const toStringProxy = new Proxy(Function.prototype.toString, {
+    const handler = {
       apply: function (target, ctx) {
         // This fixes e.g. `HTMLMediaElement.prototype.canPlayType.toString + ""`
         if (ctx === Function.prototype.toString) {
@@ -214,7 +210,12 @@
         }
         return target.call(ctx)
       }
-    })
+    }
+
+    const toStringProxy = new Proxy(
+      Function.prototype.toString,
+      utils.stripProxyFromErrors(handler)
+    )
     utils.replaceProperty(Function.prototype, 'toString', {
       value: toStringProxy
     })
@@ -236,9 +237,7 @@
    * @param {object} originalObj - The object which toString result we wan to return
    */
   utils.redirectToString = (proxyObj, originalObj) => {
-    utils.preloadCache()
-
-    const toStringProxy = new Proxy(Function.prototype.toString, {
+    const handler = {
       apply: function (target, ctx) {
         // This fixes e.g. `HTMLMediaElement.prototype.canPlayType.toString + ""`
         if (ctx === Function.prototype.toString) {
@@ -268,7 +267,12 @@
 
         return target.call(ctx)
       }
-    })
+    }
+
+    const toStringProxy = new Proxy(
+      Function.prototype.toString,
+      utils.stripProxyFromErrors(handler)
+    )
     utils.replaceProperty(Function.prototype, 'toString', {
       value: toStringProxy
     })
@@ -288,12 +292,31 @@
    * @param {object} handler - The JS Proxy handler to use
    */
   utils.replaceWithProxy = (obj, propName, handler) => {
-    utils.preloadCache()
     const originalObj = obj[propName]
     const proxyObj = new Proxy(obj[propName], utils.stripProxyFromErrors(handler))
 
     utils.replaceProperty(obj, propName, { value: proxyObj })
     utils.redirectToString(proxyObj, originalObj)
+
+    return true
+  }
+  /**
+   * All-in-one method to replace a getter with a JS Proxy using the provided Proxy handler with traps.
+   *
+   * @example
+   * replaceGetterWithProxy(Object.getPrototypeOf(navigator), 'vendor', proxyHandler)
+   *
+   * @param {object} obj - The object which has the property to replace
+   * @param {string} propName - The name of the property to replace
+   * @param {object} handler - The JS Proxy handler to use
+   */
+  utils.replaceGetterWithProxy = (obj, propName, handler) => {
+    const fn = Object.getOwnPropertyDescriptor(obj, propName).get
+    const fnStr = fn.toString() // special getter function string
+    const proxyObj = new Proxy(fn, utils.stripProxyFromErrors(handler))
+
+    utils.replaceProperty(obj, propName, { get: proxyObj })
+    utils.patchToString(proxyObj, fnStr)
 
     return true
   }
@@ -312,7 +335,6 @@
    * @param {object} handler - The JS Proxy handler to use
    */
   utils.mockWithProxy = (obj, propName, pseudoTarget, handler) => {
-    utils.preloadCache()
     const proxyObj = new Proxy(pseudoTarget, utils.stripProxyFromErrors(handler))
 
     utils.replaceProperty(obj, propName, { value: proxyObj })
@@ -335,7 +357,6 @@
    * @param {object} handler - The JS Proxy handler to use
    */
   utils.createProxy = (pseudoTarget, handler) => {
-    utils.preloadCache()
     const proxyObj = new Proxy(pseudoTarget, utils.stripProxyFromErrors(handler))
     utils.patchToString(proxyObj)
 
@@ -353,10 +374,7 @@
    */
   utils.splitObjPath = objPath => ({
     // Remove last dot entry (property) ==> `HTMLMediaElement.prototype`
-    objName: objPath
-      .split('.')
-      .slice(0, -1)
-      .join('.'),
+    objName: objPath.split('.').slice(0, -1).join('.'),
     // Extract last dot entry ==> `canPlayType`
     propName: objPath.split('.').slice(-1)[0]
   })
@@ -452,6 +470,23 @@
       })
     )
   }
+
+  // Proxy handler templates for re-usability
+  utils.makeHandler = () => ({
+    // Used by simple `navigator` getter evasions
+    getterValue: value => ({
+      apply(target, ctx, args) {
+        // Let's fetch the value first, to trigger and escalate potential errors
+        // Illegal invocations like `navigator.__proto__.vendor` will throw here
+        const ret = utils.cache.Reflect.apply(...arguments)
+        if (args && args.length === 0) {
+          return value
+        }
+        return ret
+      }
+
+    })
+  })
 
   utils.preloadCache()
 }
